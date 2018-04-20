@@ -7,7 +7,8 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const dotenv = require('dotenv');
 const passport = require('passport');
-const Auth0Strategy = require('passport-auth0');
+// const Auth0Strategy = require('passport-auth0');
+const OAuth2Strategy = require('passport-oauth2');
 const flash = require('connect-flash');
 
 dotenv.load();
@@ -15,20 +16,31 @@ dotenv.load();
 const routes = require('./routes/index');
 const user = require('./routes/user');
 
-// This will configure Passport to use Auth0
-const strategy = new Auth0Strategy(
-  {
-    domain: process.env.AUTH0_DOMAIN,
-    clientID: process.env.AUTH0_CLIENT_ID,
-    clientSecret: process.env.AUTH0_CLIENT_SECRET,
-    callbackURL:
-      process.env.AUTH0_CALLBACK_URL || 'http://localhost:3000/callback'
+const strategy = new OAuth2Strategy({
+    authorizationURL: process.env.OAUTH2_AUTHORIZATION_URL,
+    tokenURL: process.env.OAUTH2_TOKEN_URL,
+    clientID: process.env.OAUTH2_CLIENT_ID,
+    clientSecret: process.env.OAUTH2_CLIENT_SECRET,
+    callbackURL: process.env.OAUTH2_CALLBACK_URL
   },
-  function(accessToken, refreshToken, extraParams, profile, done) {
-    // accessToken is the token to call Auth0 API (not needed in the most cases)
-    // extraParams.id_token has the JSON Web Token
-    // profile has all the information from the user
-    return done(null, profile);
+  function(accessToken, refreshToken, profile, done) {
+    if(!process.env.OIDC_USERINFO_URL) {
+        return done(null, {
+        at: accessToken, 
+        rt: refreshToken, 
+        prof: { msg: "userinfo url was not defined"} 
+      });
+    }
+   this._oauth2.get(process.env.OIDC_USERINFO_URL, accessToken, function (err, body, res) {
+      if (err) { 
+        return done(new Error('failed to fetch user profile', err)); 
+      }
+      return done(null, {
+        at: accessToken, 
+        rt: refreshToken, 
+        prof: JSON.parse(body) 
+      });
+    });
   }
 );
 
