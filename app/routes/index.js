@@ -26,6 +26,7 @@ router.get('/refresh', function(req, res, next) {
     refresh.requestNewAccessToken('oauth2', req.user.rt, function(err, accessToken, refreshToken) {
       req.user.at = accessToken;
       req.user.rt = refreshToken || req.user.rt;
+      res.redirect("/user");    
     });    
   } else {
     res.redirect("/user");    
