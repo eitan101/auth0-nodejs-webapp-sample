@@ -9,6 +9,7 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 // const Auth0Strategy = require('passport-auth0');
 const OAuth2Strategy = require('passport-oauth2');
+const refresh = require('passport-oauth2-refresh');
 const flash = require('connect-flash');
 
 dotenv.load();
@@ -45,6 +46,7 @@ const strategy = new OAuth2Strategy({
 );
 
 passport.use(strategy);
+refresh.use(strategy);
 
 // you can use this section to keep a smaller payload
 passport.serializeUser(function(user, done) {

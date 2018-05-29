@@ -1,5 +1,6 @@
 const express = require('express');
 const passport = require('passport');
+const refresh = require('passport-oauth2-refresh');
 const router = express.Router();
 
 /* GET home page. */
@@ -8,10 +9,8 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/login', passport.authenticate('oauth2', {
-  clientID: process.env.OAUTH2_CLIENT_ID,
-  redirectUri: process.env.OAUTH2_CALLBACK_URL,
   responseType: 'code',
-  scope: 'openid profile'}),
+  scope: 'openid profile offline_access'}),
   function(req, res) {
     res.redirect("/");
 });
@@ -19,6 +18,18 @@ router.get('/login', passport.authenticate('oauth2', {
 router.get('/logout', function(req, res) {
   req.logout();
   res.redirect('/');
+});
+
+
+router.get('/refresh', function(req, res, next) {
+  if (req.user.rt) {
+    refresh.requestNewAccessToken('oauth2', req.user.rt, function(err, accessToken, refreshToken) {
+      req.user.at = accessToken;
+      req.user.rt = refreshToken || req.user.rt;
+    });    
+  } else {
+    res.redirect("/user");    
+  }
 });
 
 router.get('/callback',
