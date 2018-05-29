@@ -16,7 +16,7 @@ OIDC_USERINFO_URL=https://login-poc.auth0.com/userinfo%
 run:
 
 ```sh
-docker run --env-file .env -p 3000:3000 -it eitnaya/oauth2-app-mock
+docker run --rm -it --env-file .env -p 3000:3000 eitanya/auth-app-mock
 ```
 
 ## Without Userinfo Endpoint
